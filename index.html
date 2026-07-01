@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TJ's List">
+<meta name="theme-color" content="#C8102E">
+<title>🌻 Trader Joe's List</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #C8102E;
+    --cream: #FDF6EC;
+    --dark: #1A1208;
+    --green: #2D6A4F;
+    --light-green: #E8F5EE;
+    --border: #E8DDD0;
+    --ko-pink: #E91E8C;
+    --ko-light: #FFF0F8;
+    --ideas-purple: #6B2D7A;
+    --ideas-light: #F5EEFF;
+    --ideas-border: #D4A0E0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--dark);
+    padding-bottom: env(safe-area-inset-bottom, 20px);
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--red);
+    color: white;
+    padding: 52px 20px 28px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -20px; left: 50%;
+    transform: translateX(-50%);
+    width: 140%; height: 40px;
+    background: var(--cream);
+    border-radius: 50%;
+  }
+  header h1 { font-family: 'Playfair Display', serif; font-size: 1.9rem; font-weight: 900; }
+  header p { font-size: 0.7rem; opacity: 0.85; margin-top: 4px; font-weight: 300; letter-spacing: 2px; text-transform: uppercase; }
+
+  /* TABS */
+  .tabs { display: flex; padding: 16px 16px 0; gap: 8px; }
+  .tab {
+    flex: 1; text-align: center; padding: 10px 4px;
+    border-radius: 12px; font-size: 0.8rem; font-weight: 600;
+    cursor: pointer; border: 1.5px solid var(--border);
+    background: white; color: #888;
+    font-family: 'DM Sans', sans-serif; transition: all 0.15s;
+  }
+  .tab.active-list  { background: var(--red);          color: white; border-color: var(--red); }
+  .tab.active-ideas { background: var(--ideas-purple); color: white; border-color: var(--ideas-purple); }
+
+  /* TOP BAR */
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 4px; }
+  .counter-pill { border-radius: 20px; padding: 5px 14px; font-size: 0.75rem; font-weight: 600; }
+  .counter-pill.list   { background: var(--red);          color: white; }
+  .counter-pill.ideas  { background: var(--ideas-purple); color: white; }
+  .reset-btn {
+    border: 1.5px solid var(--border); background: white;
+    border-radius: 20px; padding: 5px 14px; font-size: 0.7rem;
+    cursor: pointer; font-family: 'DM Sans', sans-serif; color: #888;
+  }
+
+  /* ADD ROW */
+  .add-row { display: flex; gap: 7px; padding: 6px 16px; }
+  .add-row input {
+    flex: 1; border: 1.5px solid var(--border); border-radius: 10px;
+    padding: 10px 12px; font-size: 0.85rem; font-family: 'DM Sans', sans-serif;
+    background: white; color: var(--dark); outline: none; min-width: 0;
+  }
+  .add-row input:focus { border-color: var(--red); }
+  .add-row select {
+    border: 1.5px solid var(--border); border-radius: 10px;
+    padding: 10px 6px; font-size: 0.72rem; font-family: 'DM Sans', sans-serif;
+    background: white; color: var(--dark); outline: none;
+    max-width: 95px; flex-shrink: 0;
+  }
+  .add-btn {
+    border: none; border-radius: 10px; padding: 10px 13px;
+    font-size: 0.85rem; font-weight: 600; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; white-space: nowrap; flex-shrink: 0;
+  }
+  .add-btn.list  { background: var(--red);          color: white; }
+  .add-btn.ideas { background: var(--ideas-purple); color: white; }
+
+  /* FILTER ROW */
+  .filter-row { display: flex; gap: 6px; padding: 4px 16px 10px; overflow-x: auto; scrollbar-width: none; }
+  .filter-row::-webkit-scrollbar { display: none; }
+  .filter-btn {
+    border: 1.5px solid var(--border); background: white;
+    border-radius: 20px; padding: 5px 13px; font-size: 0.7rem;
+    font-weight: 500; cursor: pointer; white-space: nowrap;
+    font-family: 'DM Sans', sans-serif; color: #666; flex-shrink: 0;
+  }
+  .filter-btn.active { background: var(--dark); color: white; border-color: var(--dark); }
+
+  /* SECTIONS */
+  .section { margin: 0 16px; }
+  .section-header {
+    display: flex; align-items: center; gap: 10px;
+    margin: 16px 0 7px; padding-bottom: 6px;
+    border-bottom: 1.5px solid var(--border);
+  }
+  .section-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; flex-shrink: 0; }
+  .section-title { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; }
+  .section-count { margin-left: auto; font-size: 0.68rem; color: #AAA; }
+  .section.ko-sec .section-title { color: var(--ko-pink); }
+  .section.ko-sec .section-header { border-bottom-color: var(--ko-pink); }
+
+  /* ITEMS */
+  .items-list { display: flex; flex-direction: column; gap: 5px; }
+  .item {
+    background: white; border: 1.5px solid var(--border);
+    border-radius: 11px; padding: 10px 12px;
+    display: flex; align-items: center; gap: 9px;
+  }
+  .item.checked    { background: #F7F7F5; border-color: #E0E0DC; }
+  .item.ko-item    { background: var(--ko-light); border-color: #F9B8DC; }
+  .item.ko-item.checked { background: #F7F7F5; border-color: #E0E0DC; }
+  .item.idea-item  { background: var(--ideas-light); border-color: var(--ideas-border); }
+
+  /* CHECKBOX */
+  .checkbox {
+    width: 22px; height: 22px; border: 2px solid #CCC;
+    border-radius: 6px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; background: white; transition: all 0.15s;
+  }
+  .item.checked .checkbox           { background: var(--green);   border-color: var(--green); }
+  .item.checked .checkbox::after    { content: '✓'; color: white; font-size: 0.7rem; font-weight: 700; }
+  .item.ko-item .checkbox           { border-color: var(--ko-pink); }
+  .item.ko-item.checked .checkbox   { background: var(--ko-pink); border-color: var(--ko-pink); }
+  .item.idea-item .checkbox         { border-color: var(--ideas-purple); opacity: 0.3; cursor: default; }
+
+  /* ITEM BODY */
+  .item-body { flex: 1; cursor: pointer; min-width: 0; }
+  .item-name { font-size: 0.86rem; font-weight: 500; line-height: 1.3; }
+  .item.checked .item-name { text-decoration: line-through; color: #AAA; font-weight: 400; }
+  .item-note { font-size: 0.68rem; color: #999; margin-top: 1px; }
+  .item.ko-item:not(.checked) .item-note { color: var(--ko-pink); opacity: 0.75; }
+  .item.checked .item-note { color: #CCC; }
+
+  /* BADGES */
+  .badge-row { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 3px; }
+  .badge { font-size: 0.58rem; padding: 2px 6px; border-radius: 8px; font-weight: 500; }
+  .badge.cult    { background: #FFF3CD; color: #7A5C00; }
+  .badge.frozen  { background: #E8F0FF; color: #2D4FA0; }
+  .badge.healthy { background: var(--light-green); color: var(--green); }
+  .badge.quick   { background: #FDE8FF; color: #6B2D7A; }
+  .badge.ko      { background: #FFD6EC; color: var(--ko-pink); }
+
+  /* ACTION BUTTONS */
+  .item-actions { display: flex; gap: 2px; flex-shrink: 0; }
+  .act-btn {
+    background: none; border: none; cursor: pointer;
+    width: 30px; height: 30px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.78rem; transition: background 0.12s; flex-shrink: 0;
+  }
+  .act-btn:active { background: #F0F0F0; }
+  .act-btn.del:active { background: #FFE8E8; }
+  .act-btn.restore { font-size: 0.62rem; font-weight: 700; color: var(--green); background: var(--light-green); border-radius: 8px; width: auto; padding: 0 7px; }
+
+  /* IDEAS BANNER */
+  .ideas-banner {
+    margin: 14px 16px 0;
+    background: var(--ideas-light); border: 1.5px solid var(--ideas-border);
+    border-radius: 14px; padding: 12px 14px;
+  }
+  .ideas-banner h3 { font-family: 'Playfair Display', serif; font-size: 0.95rem; color: var(--ideas-purple); margin-bottom: 4px; }
+  .ideas-banner p  { font-size: 0.72rem; color: #888; line-height: 1.5; }
+
+  /* EMPTY */
+  .empty-msg { font-size: 0.75rem; color: #CCC; text-align: center; padding: 10px 0 4px; font-style: italic; }
+  .empty-ideas { text-align: center; color: #CCC; font-size: 0.82rem; padding: 40px 16px; font-style: italic; line-height: 1.8; }
+
+  /* MODAL */
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; align-items: flex-end; justify-content: center; }
+  .overlay.open { display: flex; }
+  .modal {
+    background: var(--cream); border-radius: 20px 20px 0 0;
+    padding: 22px 18px calc(38px + env(safe-area-inset-bottom, 0px));
+    width: 100%; max-width: 500px;
+  }
+  .modal h3 { font-family: 'Playfair Display', serif; font-size: 1.05rem; margin-bottom: 14px; }
+  .modal input, .modal select {
+    width: 100%; border: 1.5px solid var(--border); border-radius: 10px;
+    padding: 11px 12px; font-size: 0.86rem; font-family: 'DM Sans', sans-serif;
+    background: white; color: var(--dark); outline: none; margin-bottom: 9px; display: block;
+  }
+  .modal input:focus, .modal select:focus { border-color: var(--red); }
+  .modal-btns { display: flex; gap: 9px; margin-top: 4px; }
+  .modal-save   { flex: 1; background: var(--red); color: white; border: none; border-radius: 10px; padding: 12px; font-size: 0.88rem; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+  .modal-cancel { flex: 1; background: white; color: var(--dark); border: 1.5px solid var(--border); border-radius: 10px; padding: 12px; font-size: 0.88rem; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    left: 50%; transform: translateX(-50%);
+    background: var(--dark); color: white;
+    padding: 10px 20px; border-radius: 20px;
+    font-size: 0.8rem; font-weight: 500;
+    opacity: 0; transition: opacity 0.3s;
+    pointer-events: none; z-index: 999; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+
+  /* BOTTOM PADDING */
+  #listApp, #ideasApp { padding-bottom: 40px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🌻 Trader Joe's</h1>
+  <p>Your Shopping List</p>
+</header>
+
+<div class="tabs">
+  <button class="tab active-list"  id="tabList"  onclick="switchTab('list')">🛒 Shopping List</button>
+  <button class="tab"              id="tabIdeas" onclick="switchTab('ideas')">💡 Saved Ideas</button>
+</div>
+
+<!-- LIST VIEW -->
+<div id="listView">
+  <div class="topbar">
+    <div class="counter-pill list" id="listCounter">0 / 0</div>
+    <button class="reset-btn" onclick="resetChecks()">Uncheck All</button>
+  </div>
+  <div class="add-row">
+    <input type="text" id="newName" placeholder="Add to list..." onkeydown="if(event.key==='Enter')addItem('list')" />
+    <select id="newSec">
+      <option value="0">❄️ Frozen</option>
+      <option value="1">🥩 Proteins</option>
+      <option value="2">🥦 Produce</option>
+      <option value="3">🧀 Dairy</option>
+      <option value="4">🍞 Breads</option>
+      <option value="5">🛒 Pantry</option>
+      <option value="6">🍫 Snacks</option>
+      <option value="7">⭐ Consider</option>
+      <option value="8">💗 KO's</option>
+    </select>
+    <button class="add-btn list" onclick="addItem('list')">+ Add</button>
+  </div>
+  <div class="filter-row">
+    <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+    <button class="filter-btn" onclick="setFilter('unchecked',this)">Still Needed</button>
+    <button class="filter-btn" onclick="setFilter('checked',this)">Got It ✓</button>
+    <button class="filter-btn" onclick="setFilter('ko',this)">💗 KO's</button>
+  </div>
+  <div id="listApp"></div>
+</div>
+
+<!-- IDEAS VIEW -->
+<div id="ideasView" style="display:none">
+  <div class="ideas-banner">
+    <h3>💡 Your Saved Ideas</h3>
+    <p>Tap 💡 on any list item to save it here. Tap <strong>+ List</strong> to bring it back anytime.</p>
+  </div>
+  <div class="topbar">
+    <div class="counter-pill ideas" id="ideasCounter">0 ideas</div>
+    <button class="reset-btn" onclick="addAllIdeasToList()">Add All to List</button>
+  </div>
+  <div class="add-row">
+    <input type="text" id="newIdeaName" placeholder="Save an idea..." onkeydown="if(event.key==='Enter')addItem('idea')" />
+    <select id="newIdeaSec">
+      <option value="0">❄️ Frozen</option>
+      <option value="1">🥩 Proteins</option>
+      <option value="2">🥦 Produce</option>
+      <option value="3">🧀 Dairy</option>
+      <option value="4">🍞 Breads</option>
+      <option value="5">🛒 Pantry</option>
+      <option value="6">🍫 Snacks</option>
+      <option value="7">⭐ Consider</option>
+      <option value="8">💗 KO's</option>
+    </select>
+    <button class="add-btn ideas" onclick="addItem('idea')">+ Save</button>
+  </div>
+  <div id="ideasApp"></div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="overlay" id="modal">
+  <div class="modal">
+    <h3>Edit Item</h3>
+    <input type="text" id="eName" placeholder="Item name" />
+    <input type="text" id="eNote" placeholder="Note (optional)" />
+    <select id="eSec">
+      <option value="0">❄️ Frozen Meals & Sides</option>
+      <option value="1">🥩 Proteins</option>
+      <option value="2">🥦 Produce</option>
+      <option value="3">🧀 Dairy & Deli</option>
+      <option value="4">🍞 Breads & Grains</option>
+      <option value="5">🛒 Pantry</option>
+      <option value="6">🍫 Snacks & Treats</option>
+      <option value="7">⭐ Also Consider</option>
+      <option value="8">💗 KO's Must-Haves</option>
+    </select>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-save"   onclick="saveEdit()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STORAGE KEY ──────────────────────────────────────────
+const STORAGE_KEY = 'tj_list_v2';
+
+// ── SECTIONS ─────────────────────────────────────────────
+const SECS = [
+  { title:"Frozen Meals & Sides", icon:"❄️", bg:"#E8F0FF", ko:false },
+  { title:"Proteins",             icon:"🥩", bg:"#FFE8E8", ko:false },
+  { title:"Produce",              icon:"🥦", bg:"#E8F5EE", ko:false },
+  { title:"Dairy & Deli",         icon:"🧀", bg:"#FFF8E1", ko:false },
+  { title:"Breads & Grains",      icon:"🍞", bg:"#FFF3E0", ko:false },
+  { title:"Pantry",               icon:"🛒", bg:"#F3E5F5", ko:false },
+  { title:"Snacks & Treats",      icon:"🍫", bg:"#FDE8FF", ko:false },
+  { title:"Also Consider",        icon:"⭐", bg:"#FFF9C4", ko:false },
+  { title:"KO's Must-Haves",      icon:"💗", bg:"#FFD6EC", ko:true  },
+];
+const BL = { cult:'⭐ Cult', frozen:'❄️ Frozen', healthy:'🥦 Healthy', quick:'⚡ Quick', ko:'💗 KO' };
+
+// ── DEFAULT DATA ──────────────────────────────────────────
+const DEFAULT_ITEMS = [
+  {id:1,  name:"Soup Dumplings (Pork & Ginger)",            s:0,c:false,note:"",                                b:["frozen","cult"],           ko:false,idea:false},
+  {id:2,  name:"Frozen Kimbap",                             s:0,c:false,note:"",                                b:["frozen","cult"],           ko:false,idea:false},
+  {id:3,  name:"Chicken Cilantro Mini Wontons",             s:0,c:false,note:"",                                b:["frozen","quick"],          ko:false,idea:false},
+  {id:4,  name:"Thai Vegetable Gyoza",                      s:0,c:false,note:"Pan-fry from frozen",             b:["frozen","quick"],          ko:false,idea:false},
+  {id:5,  name:"Hatch Chile Mac & Cheese",                  s:0,c:false,note:"",                                b:["frozen","cult"],           ko:false,idea:false},
+  {id:6,  name:"Japanese Fried Rice",                       s:0,c:false,note:"",                                b:["frozen","quick"],          ko:false,idea:false},
+  {id:7,  name:"Chicken Tikka Masala",                      s:0,c:false,note:"Microwave or stovetop",           b:["frozen","quick"],          ko:false,idea:false},
+  {id:8,  name:"Butter Chicken",                            s:0,c:false,note:"",                                b:["frozen","quick"],          ko:false,idea:false},
+  {id:9,  name:"Shrimp Stir Fry",                           s:0,c:false,note:"High protein, clean ingredients", b:["frozen","healthy"],        ko:false,idea:false},
+  {id:10, name:"Cauliflower Gnocchi",                       s:0,c:false,note:"Pan-fry for best results",        b:["frozen","healthy","cult"], ko:false,idea:false},
+  {id:11, name:"Fiocchetti with Pink Sauce",                s:0,c:false,note:"",                                b:["frozen","cult"],           ko:false,idea:false},
+  {id:12, name:"Roasted Corn",                              s:0,c:false,note:"",                                b:["frozen","healthy"],        ko:false,idea:false},
+  {id:13, name:"Organic Brown Rice (Microwave Packs)",      s:0,c:false,note:"3 min, great base for bowls",     b:["frozen","quick","healthy"],ko:false,idea:false},
+  {id:14, name:"Shelled Edamame",                           s:0,c:false,note:"High protein snack or side",      b:["frozen","healthy"],        ko:false,idea:false},
+  {id:15, name:"Frozen Garlic Cubes",                       s:0,c:false,note:"Game changer for quick cooking",  b:["frozen","quick"],          ko:false,idea:false},
+  {id:16, name:"Premium Salmon Burgers",                    s:1,c:false,note:"Great with avocado on top",       b:["frozen","healthy"],        ko:false,idea:false},
+  {id:17, name:"Argentinian Red Shrimp",                    s:1,c:false,note:"Sweetest frozen shrimp you'll find",b:["frozen","healthy","cult"],ko:false,idea:false},
+  {id:18, name:"Teeny Tiny Avocados",                       s:2,c:false,note:"",                                b:["healthy"],                 ko:false,idea:false},
+  {id:19, name:"Fresh Berries",                             s:2,c:false,note:"",                                b:["healthy"],                 ko:false,idea:false},
+  {id:20, name:"Bananas",                                   s:2,c:false,note:"",                                b:["healthy"],                 ko:false,idea:false},
+  {id:21, name:"Salad Greens",                              s:2,c:false,note:"",                                b:["healthy"],                 ko:false,idea:false},
+  {id:22, name:"Bell Peppers",                              s:2,c:false,note:"",                                b:["healthy"],                 ko:false,idea:false},
+  {id:23, name:"Cucumbers",                                 s:2,c:false,note:"",                                b:["healthy"],                 ko:false,idea:false},
+  {id:24, name:"Cherry Tomatoes",                           s:2,c:false,note:"",                                b:["healthy"],                 ko:false,idea:false},
+  {id:25, name:"Plain Greek Yogurt",                        s:3,c:false,note:"High protein, no added sugar",    b:["healthy"],                 ko:false,idea:false},
+  {id:26, name:"Goat Cheese",                               s:3,c:false,note:"",                                b:[],                          ko:false,idea:false},
+  {id:27, name:"Mediterranean Hummus",                      s:3,c:false,note:"",                                b:["healthy"],                 ko:false,idea:false},
+  {id:28, name:"String Cheese",                             s:3,c:false,note:"",                                b:["quick"],                   ko:false,idea:false},
+  {id:44, name:"Burrata Cheese",                            s:3,c:false,note:"Pair with tomatoes & olive oil",  b:["cult"],                    ko:false,idea:false},
+  {id:29, name:"Sourdough Bread",                           s:4,c:false,note:"",                                b:[],                          ko:false,idea:false},
+  {id:30, name:"Organic Seeded Bread",                      s:4,c:false,note:"",                                b:["healthy"],                 ko:false,idea:false},
+  {id:31, name:"Everything But The Bagel Seasoning",        s:5,c:false,note:"Goes on eggs, avocado, salmon…",  b:["cult","quick"],            ko:false,idea:false},
+  {id:32, name:"Extra Virgin Olive Oil",                    s:5,c:false,note:"",                                b:["healthy"],                 ko:false,idea:false},
+  {id:33, name:"Honey",                                     s:5,c:false,note:"",                                b:[],                          ko:false,idea:false},
+  {id:34, name:"Freeze-Dried Fruit",                        s:5,c:false,note:"No sugar added",                  b:["healthy"],                 ko:false,idea:false},
+  {id:45, name:"Organic Coconut Aminos",                    s:5,c:false,note:"Soy sauce swap, lower sodium",    b:["healthy"],                 ko:false,idea:false},
+  {id:35, name:"Mixed Nuts",                                s:6,c:false,note:"",                                b:["healthy"],                 ko:false,idea:false},
+  {id:36, name:"Dark Chocolate Peanut Butter Cups",         s:6,c:false,note:"Better-ingredient Reese's",       b:["cult"],                    ko:false,idea:false},
+  {id:46, name:"Mac & Cheese Bites",                        s:6,c:false,note:"Crispy frozen bites, real cheese",b:["frozen","cult"],           ko:false,idea:false},
+  // IDEAS
+  {id:37, name:"Mandarin Orange Chicken",                   s:7,c:false,note:"#1 cult product",                 b:["frozen","cult","quick"],   ko:false,idea:true},
+  {id:38, name:"Palak Paneer",                              s:7,c:false,note:"Shockingly good frozen Indian",   b:["frozen","healthy"],        ko:false,idea:true},
+  {id:39, name:"Unexpected Cheddar Cheese",                 s:7,c:false,note:"Best cheese in the store",        b:["cult"],                    ko:false,idea:true},
+  {id:40, name:"Chili Onion Crunch",                        s:7,c:false,note:"Put it on everything",            b:["cult"],                    ko:false,idea:true},
+  {id:41, name:"Green Goddess Salad Dressing",              s:7,c:false,note:"",                                b:["cult","healthy"],          ko:false,idea:true},
+  {id:42, name:"Speculoos Cookie Butter",                   s:7,c:false,note:"Iconic TJ's spread",              b:["cult"],                    ko:false,idea:true},
+  {id:43, name:"Dark Chocolate Covered Almonds",            s:7,c:false,note:"",                                b:["healthy","cult"],          ko:false,idea:true},
+  {id:60, name:"Pork Gyoza Potstickers",                    s:0,c:false,note:"#1 rated TJ's dumpling",          b:["frozen","cult"],           ko:false,idea:true},
+  {id:61, name:"Chicken Gyoza Potstickers",                 s:0,c:false,note:"Dark meat, great texture",        b:["frozen","cult"],           ko:false,idea:true},
+  {id:62, name:"Korean Yangnyeom Sauce",                    s:5,c:false,note:"#1 ranked TJ's sauce 2025",       b:["cult"],                    ko:false,idea:true},
+  {id:63, name:"Gyoza Dipping Sauce",                       s:5,c:false,note:"$2.99 — pairs with all dumplings",b:["cult"],                    ko:false,idea:true},
+  {id:64, name:"Ponzu Sauce",                               s:5,c:false,note:"Citrus-forward, great for fish",  b:["cult"],                    ko:false,idea:true},
+  {id:65, name:"Hoisin Sauce",                              s:5,c:false,note:"Only $1.99 — amazing for stir fry",b:["cult"],                   ko:false,idea:true},
+  {id:66, name:"Thai Sweet Ginger Sauce",                   s:5,c:false,note:"Heat + sweetness on pork/chicken",b:["cult"],                   ko:false,idea:true},
+  // KO
+  {id:50, name:"Green Salsa",                               s:8,c:false,note:"KO's pick — don't skip!",         b:["ko"],                      ko:true, idea:false},
+  {id:51, name:"Peonies",                                   s:8,c:false,note:"If they have them",               b:["ko"],                      ko:true, idea:false},
+  {id:52, name:"Vitamin C Serum",                           s:8,c:false,note:"Front wall — may be sold out",    b:["ko"],                      ko:true, idea:false},
+  {id:53, name:"Frozen Cinnamon Rolls",                     s:8,c:false,note:"KO's pick — don't skip!",         b:["ko","frozen"],             ko:true, idea:false},
+  {id:54, name:"Frozen Macaroni and Cheese",                s:8,c:false,note:"",                                b:["ko","frozen"],             ko:true, idea:false},
+  {id:55, name:"Frozen Chicken Strips",                     s:8,c:false,note:"",                                b:["ko","frozen"],             ko:true, idea:false},
+  {id:56, name:"Frozen Choc Covered Bananas & Strawberries",s:8,c:false,note:"The ones she likes",              b:["ko","frozen"],             ko:true, idea:false},
+];
+
+// ── STATE ─────────────────────────────────────────────────
+let items = [], nid = 300, filter = 'all', activeTab = 'list', editId = null;
+
+// ── LOCAL STORAGE ─────────────────────────────────────────
+function loadData() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      items = parsed.items;
+      nid = Math.max(...items.map(i => i.id), 300) + 1;
+    } else {
+      items = JSON.parse(JSON.stringify(DEFAULT_ITEMS));
+      saveData();
+    }
+  } catch(e) {
+    items = JSON.parse(JSON.stringify(DEFAULT_ITEMS));
+  }
+}
+
+function saveData() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ items, savedAt: new Date().toISOString() }));
+  } catch(e) { console.warn('Storage save failed', e); }
+}
+
+// ── TABS ──────────────────────────────────────────────────
+function switchTab(tab) {
+  activeTab = tab;
+  document.getElementById('listView').style.display  = tab === 'list'  ? '' : 'none';
+  document.getElementById('ideasView').style.display = tab === 'ideas' ? '' : 'none';
+  document.getElementById('tabList').className  = 'tab' + (tab === 'list'  ? ' active-list'  : '');
+  document.getElementById('tabIdeas').className = 'tab' + (tab === 'ideas' ? ' active-ideas' : '');
+}
+
+// ── FILTER ────────────────────────────────────────────────
+function setFilter(f, btn) {
+  filter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+// ── ADD ───────────────────────────────────────────────────
+function addItem(type) {
+  const isIdea = type === 'idea';
+  const n = document.getElementById(isIdea ? 'newIdeaName' : 'newName').value.trim();
+  const s = parseInt(document.getElementById(isIdea ? 'newIdeaSec' : 'newSec').value);
+  if (!n) return;
+  items.push({ id: nid++, name: n, s, c: false, note: '', b: s===8?['ko']:[], ko: s===8, idea: isIdea });
+  document.getElementById(isIdea ? 'newIdeaName' : 'newName').value = '';
+  saveData(); render();
+}
+
+// ── ACTIONS ───────────────────────────────────────────────
+function toggle(id) {
+  const i = items.find(x => x.id === id);
+  if (i && !i.idea) { i.c = !i.c; saveData(); render(); }
+}
+function saveToIdeas(id) {
+  const i = items.find(x => x.id === id);
+  if (i) { i.idea = true; i.c = false; saveData(); render(); showToast('💡 Saved to Ideas'); }
+}
+function restoreToList(id) {
+  const i = items.find(x => x.id === id);
+  if (i) { i.idea = false; saveData(); render(); showToast('✅ Added to List'); }
+}
+function delItem(id) {
+  items = items.filter(x => x.id !== id);
+  saveData(); render(); showToast('🗑️ Removed');
+}
+function addAllIdeasToList() {
+  items.filter(i => i.idea).forEach(i => i.idea = false);
+  saveData(); render(); switchTab('list'); showToast('✅ All ideas added to list!');
+}
+function resetChecks() {
+  items.filter(i => !i.idea).forEach(i => i.c = false);
+  saveData(); render();
+}
+
+// ── EDIT ──────────────────────────────────────────────────
+function openEdit(id) {
+  editId = id;
+  const i = items.find(x => x.id === id);
+  document.getElementById('eName').value = i.name;
+  document.getElementById('eNote').value = i.note || '';
+  document.getElementById('eSec').value  = i.s;
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() { document.getElementById('modal').classList.remove('open'); editId = null; }
+function saveEdit() {
+  const i = items.find(x => x.id === editId);
+  if (i) {
+    i.name = document.getElementById('eName').value.trim() || i.name;
+    i.note = document.getElementById('eNote').value.trim();
+    i.s    = parseInt(document.getElementById('eSec').value);
+    i.ko   = i.s === 8;
+  }
+  closeModal(); saveData(); render();
+}
+
+// ── TOAST ─────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ── RENDER ────────────────────────────────────────────────
+function render() { renderList(); renderIdeas(); }
+
+function renderList() {
+  const listItems = items.filter(i => !i.idea);
+  const total = listItems.length, done = listItems.filter(i => i.c).length;
+  document.getElementById('listCounter').textContent = done + ' / ' + total + ' checked';
+  const app = document.getElementById('listApp');
+  app.innerHTML = '';
+
+  SECS.forEach((sec, si) => {
+    let allSec = listItems.filter(i => i.s === si);
+    if (allSec.length === 0) return;
+    let vis = [...allSec];
+    if (filter === 'checked')   vis = vis.filter(i => i.c);
+    if (filter === 'unchecked') vis = vis.filter(i => !i.c);
+    if (filter === 'ko') { if (si !== 8) return; vis = allSec; }
+    if (vis.length === 0 && filter !== 'all') return;
+
+    const got = allSec.filter(i => i.c).length;
+    const div = document.createElement('div');
+    div.className = 'section' + (sec.ko ? ' ko-sec' : '');
+    div.innerHTML = `
+      <div class="section-header">
+        <div class="section-icon" style="background:${sec.bg}">${sec.icon}</div>
+        <div class="section-title">${sec.title}</div>
+        <div class="section-count">${got}/${allSec.length}</div>
+      </div>
+      <div class="items-list" id="lst${si}"></div>`;
+    app.appendChild(div);
+
+    const lst = div.querySelector('#lst' + si);
+    if (vis.length === 0) { lst.innerHTML = '<div class="empty-msg">All checked ✓</div>'; return; }
+
+    vis.forEach(item => {
+      const d = document.createElement('div');
+      d.className = 'item' + (item.c ? ' checked' : '') + (item.ko ? ' ko-item' : '');
+      const badges = (item.b||[]).map(b => `<span class="badge ${b}">${BL[b]||b}</span>`).join('');
+      d.innerHTML = `
+        <div class="checkbox" onclick="toggle(${item.id})"></div>
+        <div class="item-body" onclick="toggle(${item.id})">
+          <div class="item-name">${item.name}</div>
+          ${item.note ? `<div class="item-note">${item.note}</div>` : ''}
+          ${badges ? `<div class="badge-row">${badges}</div>` : ''}
+        </div>
+        <div class="item-actions">
+          <button class="act-btn" onclick="saveToIdeas(${item.id})" title="Save to Ideas">💡</button>
+          <button class="act-btn" onclick="openEdit(${item.id})"    title="Edit">✏️</button>
+          <button class="act-btn del" onclick="delItem(${item.id})" title="Delete">🗑️</button>
+        </div>`;
+      lst.appendChild(d);
+    });
+  });
+}
+
+function renderIdeas() {
+  const ideaItems = items.filter(i => i.idea);
+  document.getElementById('ideasCounter').textContent = ideaItems.length + ' idea' + (ideaItems.length !== 1 ? 's' : '');
+  const app = document.getElementById('ideasApp');
+  app.innerHTML = '';
+
+  if (ideaItems.length === 0) {
+    app.innerHTML = '<div class="empty-ideas">No saved ideas yet.<br>Tap 💡 on any list item to save it here.</div>';
+    return;
+  }
+
+  SECS.forEach((sec, si) => {
+    const vis = ideaItems.filter(i => i.s === si);
+    if (vis.length === 0) return;
+    const div = document.createElement('div');
+    div.className = 'section';
+    div.innerHTML = `
+      <div class="section-header">
+        <div class="section-icon" style="background:${sec.bg}">${sec.icon}</div>
+        <div class="section-title">${sec.title}</div>
+        <div class="section-count">${vis.length}</div>
+      </div>
+      <div class="items-list" id="idea-lst${si}"></div>`;
+    app.appendChild(div);
+
+    const lst = div.querySelector('#idea-lst' + si);
+    vis.forEach(item => {
+      const d = document.createElement('div');
+      d.className = 'item idea-item';
+      const badges = (item.b||[]).map(b => `<span class="badge ${b}">${BL[b]||b}</span>`).join('');
+      d.innerHTML = `
+        <div class="checkbox"></div>
+        <div class="item-body">
+          <div class="item-name">${item.name}</div>
+          ${item.note ? `<div class="item-note">${item.note}</div>` : ''}
+          ${badges ? `<div class="badge-row">${badges}</div>` : ''}
+        </div>
+        <div class="item-actions">
+          <button class="act-btn restore" onclick="restoreToList(${item.id})">+ List</button>
+          <button class="act-btn" onclick="openEdit(${item.id})">✏️</button>
+          <button class="act-btn del" onclick="delItem(${item.id})">🗑️</button>
+        </div>`;
+      lst.appendChild(d);
+    });
+  });
+}
+
+// ── MODAL CLOSE ON OUTSIDE TAP ────────────────────────────
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal')) closeModal();
+});
+
+// ── INIT ──────────────────────────────────────────────────
+loadData();
+render();
+</script>
+</body>
+</html>
